@@ -1,304 +1,807 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>小米集团 (01810.HK) 股价走势</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-                   "Microsoft YaHei", sans-serif;
-      background: #f5f7fa;
-      color: #333;
-      min-height: 100vh;
-    }
-    header {
-      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-      color: white;
-      padding: 28px 0 22px;
-      text-align: center;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-    }
-    header h1 { font-size: 26px; font-weight: 700; letter-spacing: 1px; }
-    header p  { font-size: 14px; opacity: 0.85; margin-top: 6px; }
-
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px 20px 40px; }
-
-    /* 数据卡片 */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      text-align: center;
-    }
-    .card .label { font-size: 13px; color: #888; margin-bottom: 6px; }
-    .card .value { font-size: 24px; font-weight: 700; }
-    .card .value.red   { color: #e74c3c; }
-    .card .value.green { color: #27ae60; }
-    .card .sub  { font-size: 12px; color: #aaa; margin-top: 4px; }
-
-    /* 图表区 */
-    .chart-box {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      margin-bottom: 28px;
-    }
-    .chart-box h2 {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: #333;
-    }
-
-    /* 数据表格 */
-    .table-box {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      overflow-x: auto;
-    }
-    .table-box h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead th {
-      background: #f0f2f5;
-      padding: 10px 12px;
-      text-align: right;
-      font-weight: 600;
-      color: #555;
-      position: sticky;
-      top: 0;
-    }
-    tbody td { padding: 9px 12px; text-align: right; border-bottom: 1px solid #f0f0f0; }
-    tbody tr:hover { background: #fafafa; }
-    .up   { color: #e74c3c; font-weight: 600; }
-    .down { color: #27ae60; font-weight: 600; }
-
-    /* 页脚 */
-    footer {
-      text-align: center;
-      padding: 20px;
-      font-size: 12px;
-      color: #aaa;
-    }
-    footer a { color: #e74c3c; text-decoration: none; }
-
-    @media (max-width: 600px) {
-      .stats { grid-template-columns: 1fr 1fr; }
-      header h1 { font-size: 20px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Quant Lab - 股票技术指标实验室</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            min-height: 100vh;
+        }
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .header h1 { font-size: 22px; font-weight: 600; }
+        .header .subtitle { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+        .header .badge {
+            background: rgba(255,255,255,0.15);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        /* Layout */
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .control-bar {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .control-group { display: flex; align-items: center; gap: 8px; }
+        .control-group label { font-size: 14px; font-weight: 500; color: #555; white-space: nowrap; }
+        select, input[type="number"] {
+            padding: 6px 10px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        select:hover, input[type="number"]:hover { border-color: #4096ff; }
+        select:focus, input[type="number"]:focus { border-color: #4096ff; box-shadow: 0 0 0 2px rgba(64,150,255,0.1); }
+        select { min-width: 180px; cursor: pointer; }
+        input[type="number"] { width: 70px; }
+        /* Info Cards */
+        .info-cards { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .info-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            min-width: 140px;
+        }
+        .info-card .label { font-size: 12px; color: #999; margin-bottom: 4px; }
+        .info-card .value { font-size: 20px; font-weight: 600; }
+        .info-card .change { font-size: 13px; margin-top: 2px; }
+        .up { color: #e0322d; }
+        .down { color: #00a870; }
+        /* Chart Panels */
+        .chart-panel {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .chart-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .chart-panel-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .chart-panel-title .icon { width: 4px; height: 18px; border-radius: 2px; }
+        .params-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .param-item { display: flex; align-items: center; gap: 4px; }
+        .param-item label { font-size: 12px; color: #888; }
+        .param-item input { width: 55px; padding: 4px 8px; font-size: 13px; }
+        .chart-container { position: relative; height: 320px; }
+        .chart-container.small { height: 220px; }
+        /* Colors */
+        .bg-rsi { background: #722ed1; }
+        .bg-macd { background: #13c2c2; }
+        .bg-boll { background: #fa8c16; }
+        .bg-atr { background: #eb2f96; }
+        .bg-price { background: #1890ff; }
+        /* Tooltip */
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 13px;
+        }
+        /* Loading */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #999;
+        }
+        .loading .spinner {
+            width: 32px; height: 32px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #1890ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .control-bar { flex-direction: column; align-items: stretch; }
+            .info-cards { flex-direction: column; }
+            .chart-container { height: 260px; }
+        }
+    </style>
 </head>
 <body>
-
-<header>
-  <h1>📈 小米集团-W (01810.HK) 股价走势</h1>
-  <p>过去一年每日交易数据 · 2025-06-30 ~ 2026-06-29</p>
-</header>
-
-<div class="container">
-
-  <!-- 核心数据卡片 -->
-  <div class="stats">
-    <div class="card">
-      <div class="label">最新收盘价</div>
-      <div class="value red" id="latestClose">—</div>
-      <div class="sub" id="latestDate">—</div>
+    <div class="header">
+        <div>
+            <h1>AI Quant Lab</h1>
+            <div class="subtitle">股票技术指标交互式实验室 | RSI / MACD / Bollinger Bands / ATR</div>
+        </div>
+        <div class="badge">v1.0</div>
     </div>
-    <div class="card">
-      <div class="label">期间最高</div>
-      <div class="value red" id="maxClose">—</div>
-      <div class="sub" id="maxDate">—</div>
+
+    <div class="container">
+        <!-- Control Bar -->
+        <div class="control-bar">
+            <div class="control-group">
+                <label>选择股票</label>
+                <select id="stockSelect"></select>
+            </div>
+            <div class="control-group">
+                <label>显示区间</label>
+                <select id="rangeSelect">
+                    <option value="60">近60日</option>
+                    <option value="120" selected>近120日</option>
+                    <option value="180">近180日</option>
+                    <option value="0">全部</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>图表类型</label>
+                <select id="chartType">
+                    <option value="line" selected>收盘价折线</option>
+                    <option value="candle">K线柱状</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-cards" id="infoCards"></div>
+
+        <!-- Price Chart -->
+        <div class="chart-panel">
+            <div class="chart-panel-header">
+                <div class="chart-panel-title">
+                    <div class="icon bg-price"></div>
+                    <span>价格走势</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- RSI -->
+        <div class="chart-panel">
+            <div class="chart-panel-header">
+                <div class="chart-panel-title">
+                    <div class="icon bg-rsi"></div>
+                    <span>RSI 相对强弱指标</span>
+                </div>
+                <div class="params-row">
+                    <div class="param-item"><label>周期</label><input type="number" id="rsiPeriod" value="14" min="2" max="50"></div>
+                    <div class="param-item"><label>超买</label><input type="number" id="rsiOverbought" value="70" min="50" max="100"></div>
+                    <div class="param-item"><label>超卖</label><input type="number" id="rsiOversold" value="30" min="0" max="50"></div>
+                </div>
+            </div>
+            <div class="chart-container small">
+                <canvas id="rsiChart"></canvas>
+            </div>
+        </div>
+
+        <!-- MACD -->
+        <div class="chart-panel">
+            <div class="chart-panel-header">
+                <div class="chart-panel-title">
+                    <div class="icon bg-macd"></div>
+                    <span>MACD 指数平滑异同移动平均线</span>
+                </div>
+                <div class="params-row">
+                    <div class="param-item"><label>快线</label><input type="number" id="macdFast" value="12" min="2" max="30"></div>
+                    <div class="param-item"><label>慢线</label><input type="number" id="macdSlow" value="26" min="5" max="50"></div>
+                    <div class="param-item"><label>信号</label><input type="number" id="macdSignal" value="9" min="2" max="20"></div>
+                </div>
+            </div>
+            <div class="chart-container small">
+                <canvas id="macdChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Bollinger Bands -->
+        <div class="chart-panel">
+            <div class="chart-panel-header">
+                <div class="chart-panel-title">
+                    <div class="icon bg-boll"></div>
+                    <span>BOLL 布林带</span>
+                </div>
+                <div class="params-row">
+                    <div class="param-item"><label>周期</label><input type="number" id="bollPeriod" value="20" min="5" max="50"></div>
+                    <div class="param-item"><label>标准差倍数</label><input type="number" id="bollStd" value="2" min="1" max="4" step="0.5"></div>
+                </div>
+            </div>
+            <div class="chart-container small">
+                <canvas id="bollChart"></canvas>
+            </div>
+        </div>
+
+        <!-- ATR -->
+        <div class="chart-panel">
+            <div class="chart-panel-header">
+                <div class="chart-panel-title">
+                    <div class="icon bg-atr"></div>
+                    <span>ATR 平均真实波幅</span>
+                </div>
+                <div class="params-row">
+                    <div class="param-item"><label>周期</label><input type="number" id="atrPeriod" value="14" min="2" max="50"></div>
+                </div>
+            </div>
+            <div class="chart-container small">
+                <canvas id="atrChart"></canvas>
+            </div>
+        </div>
     </div>
-    <div class="card">
-      <div class="label">期间最低</div>
-      <div class="value green" id="minClose">—</div>
-      <div class="sub" id="minDate">—</div>
+
+    <div class="footer">
+        AI Quant Lab | 数据来源: Tushare API | 仅供学习研究使用，不构成投资建议
     </div>
-    <div class="card">
-      <div class="label">涨跌幅</div>
-      <div class="value" id="pctChange">—</div>
-      <div class="sub">年初 vs 最新</div>
-    </div>
-    <div class="card">
-      <div class="label">平均收盘价</div>
-      <div class="value" id="avgClose">—</div>
-      <div class="sub">245 个交易日</div>
-    </div>
-  </div>
 
-  <!-- 曲线图 -->
-  <div class="chart-box">
-    <h2>📊 收盘价走势图</h2>
-    <canvas id="priceChart" height="380"></canvas>
-  </div>
+    <script src="src/data.js"></script>
+    <script>
+    // ============ Global State ============
+    let currentStock = null;
+    let charts = {};
+    const RED = '#e0322d';
+    const GREEN = '#00a870';
+    const COLORS = {
+        price: '#1890ff',
+        rsi: '#722ed1',
+        rsiLine: '#9254de',
+        macd: '#13c2c2',
+        dif: '#1890ff',
+        dea: '#fa8c16',
+        boll: '#fa8c16',
+        bollUpper: '#fa8c16',
+        bollMid: '#1890ff',
+        bollLower: '#722ed1',
+        atr: '#eb2f96',
+        atrLine: '#eb2f96',
+        atrFill: 'rgba(235,47,150,0.1)'
+    };
 
-  <!-- K线 / 数据表格 -->
-  <div class="table-box">
-    <h2>📋 近期交易数据</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>日期</th>
-          <th>开盘</th>
-          <th>最高</th>
-          <th>最低</th>
-          <th>收盘</th>
-          <th>涨跌幅</th>
-          <th>成交量 (万股)</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
-
-</div>
-
-<footer>
-  数据来源：Tushare Pro &nbsp;|&nbsp;
-  <a href="https://github.com/mechunchun/chunchun" target="_blank">GitHub</a>
-</footer>
-
-<script>
-// ====== 从 CSV 加载数据 ======
-// 这里直接内嵌数据，避免跨域问题
-const stockData = [
-{"trade_date":"20260629","open":21.70,"high":22.28,"low":21.40,"close":21.86,"pct_chg":2.05,"vol":206092.16},
-{"trade_date":"20260626","open":21.98,"high":22.16,"low":21.30,"close":21.42,"pct_chg":-3.95,"vol":191622.77},
-{"trade_date":"20260625","open":22.74,"high":22.80,"low":21.86,"close":22.30,"pct_chg":-2.87,"vol":178920.83},
-{"trade_date":"20260624","open":22.62,"high":23.16,"low":22.26,"close":22.96,"pct_chg":1.50,"vol":219904.22},
-{"trade_date":"20260623","open":23.50,"high":23.60,"low":22.50,"close":22.62,"pct_chg":-4.64,"vol":244561.41},
-{"trade_date":"20260622","open":24.20,"high":24.30,"low":23.52,"close":23.72,"pct_chg":-3.50,"vol":241866.86},
-{"trade_date":"20260618","open":25.10,"high":25.10,"low":24.36,"close":24.58,"pct_chg":-3.30,"vol":199675.80},
-{"trade_date":"20260617","open":25.64,"high":25.78,"low":25.14,"close":25.42,"pct_chg":-0.94,"vol":109311.10},
-{"trade_date":"20260616","open":26.26,"high":26.36,"low":25.50,"close":25.66,"pct_chg":-2.28,"vol":113820.64},
-{"trade_date":"20260615","open":26.70,"high":26.78,"low":26.18,"close":26.26,"pct_chg":-2.67,"vol":124916.64},
-{"trade_date":"20260612","open":27.02,"high":27.32,"low":26.52,"close":26.98,"pct_chg":-1.39,"vol":101874.85},
-{"trade_date":"20260611","open":27.48,"high":27.68,"low":27.06,"close":27.36,"pct_chg":-0.65,"vol":90450.68},
-{"trade_date":"20260610","open":27.58,"high":27.84,"low":27.30,"close":27.54,"pct_chg":-0.65,"vol":85167.69},
-{"trade_date":"20260609","open":27.70,"high":28.00,"low":27.50,"close":27.72,"pct_chg":0.00,"vol":100815.54},
-{"trade_date":"20260606","open":27.72,"high":27.96,"low":27.50,"close":27.72,"pct_chg":-0.65,"vol":102679.57},
-{"trade_date":"20260605","open":28.00,"high":28.18,"low":27.52,"close":27.90,"pct_chg":-0.36,"vol":105830.86},
-{"trade_date":"20260604","open":28.00,"high":28.30,"low":27.74,"close":28.00,"pct_chg":1.01,"vol":114094.55},
-{"trade_date":"20260603","open":27.72,"high":28.06,"low":27.56,"close":27.72,"pct_chg":-1.07,"vol":103549.95},
-{"trade_date":"20260602","open":28.02,"high":28.16,"low":27.48,"close":27.72,"pct_chg":-2.05,"vol":119871.68},
-{"trade_date":"20260529","open":28.30,"high":28.48,"low":27.90,"close":28.30,"pct_chg":-0.70,"vol":115898.81},
-{"trade_date":"20260528","open":28.50,"high":28.68,"low":28.18,"close":28.50,"pct_chg":0.00,"vol":106695.61},
-{"trade_date":"20260527","open":28.50,"high":28.66,"low":28.30,"close":28.50,"pct_chg":0.00,"vol":89287.17},
-{"trade_date":"20260526","open":28.44,"high":28.60,"low":28.20,"close":28.50,"pct_chg":0.71,"vol":92687.49},
-{"trade_date":"20260523","open":28.30,"high":28.56,"low":28.14,"close":28.30,"pct_chg":-0.70,"vol":104598.88},
-{"trade_date":"20260522","open":28.50,"high":28.70,"low":28.16,"close":28.50,"pct_chg":0.00,"vol":107898.51},
-{"trade_date":"20260521","open":28.50,"high":28.72,"low":28.30,"close":28.50,"pct_chg":0.21,"vol":108896.75},
-{"trade_date":"20260520","open":28.42,"high":28.70,"low":28.26,"close":28.44,"pct_chg":-0.21,"vol":111296.58},
-{"trade_date":"20260519","open":28.60,"high":28.78,"low":28.24,"close":28.50,"pct_chg":0.00,"vol":112396.58},
-{"trade_date":"20260516","open":28.50,"high":28.82,"low":28.30,"close":28.50,"pct_chg":0.71,"vol":118796.58},
-{"trade_date":"20260515","open":28.30,"high":28.60,"low":28.16,"close":28.30,"pct_chg":-0.70,"vol":121496.58},
-{"trade_date":"20260514","open":28.50,"high":28.70,"low":28.20,"close":28.50,"pct_chg":0.71,"vol":123196.58},
-{"trade_date":"20260513","open":28.30,"high":28.60,"low":28.10,"close":28.30,"pct_chg":1.07,"vol":126896.58},
-{"trade_date":"20260512","open":28.00,"high":28.50,"low":27.90,"close":28.00,"pct_chg":0.00,"vol":128996.58},
-{"trade_date":"20260509","open":28.00,"high":28.40,"low":27.80,"close":28.00,"pct_chg":0.00,"vol":130596.58},
-{"trade_date":"20260508","open":28.00,"high":28.30,"low":27.86,"close":28.00,"pct_chg":0.00,"vol":131996.58},
-{"trade_date":"20260507","open":28.00,"high":28.30,"low":27.80,"close":28.00,"pct_chg":0.00,"vol":132996.58},
-{"trade_date":"20260506","open":28.00,"high":28.30,"low":27.80,"close":28.00,"pct_chg":0.00,"vol":133996.58},
-{"trade_date":"20260505","open":28.00,"high":28.40,"low":27.80,"close":28.00,"pct_chg":0.00,"vol":134996.58}
-];
-
-// 格式化日期 YYYYMMDD -> YYYY-MM-DD
-function fmtDate(s) {
-  return s.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
-}
-
-// 计算统计
-const closes   = stockData.map(d => d.close);
-const maxC     = Math.max(...closes);
-const minC     = Math.min(...closes);
-const maxItem  = stockData.find(d => d.close === maxC);
-const minItem  = stockData.find(d => d.close === minC);
-const latest   = stockData[0];
-const first    = stockData[stockData.length - 1];
-const pctChg   = ((latest.close - first.close) / first.close * 100).toFixed(2);
-const avgC     = (closes.reduce((a,b)=>a+b,0) / closes.length).toFixed(2);
-
-document.getElementById('latestClose').textContent = 'HK$' + latest.close.toFixed(2);
-document.getElementById('latestDate').textContent  = fmtDate(latest.trade_date);
-document.getElementById('maxClose').textContent = 'HK$' + maxC.toFixed(2);
-document.getElementById('maxDate').textContent  = fmtDate(maxItem.trade_date);
-document.getElementById('minClose').textContent = 'HK$' + minC.toFixed(2);
-document.getElementById('minDate').textContent  = fmtDate(minItem.trade_date);
-
-const pctEl = document.getElementById('pctChange');
-pctEl.textContent = (pctChg >= 0 ? '+' : '') + pctChg + '%';
-pctEl.className = 'value ' + (pctChg >= 0 ? 'red' : 'green');
-
-document.getElementById('avgClose').textContent = 'HK$' + avgC;
-
-// ====== Chart.js 曲线图 ======
-const labels = stockData.slice().reverse().map(d => fmtDate(d.trade_date));
-const closeData = stockData.slice().reverse().map(d => d.close);
-
-const ctx = document.getElementById('priceChart').getContext('2d');
-new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels,
-    datasets: [{
-      label: '收盘价 (港元)',
-      data: closeData,
-      borderColor: '#e74c3c',
-      backgroundColor: 'rgba(231,76,60,0.08)',
-      fill: true,
-      tension: 0.3,
-      pointRadius: 0,
-      pointHoverRadius: 5,
-      borderWidth: 2
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { display: true, position: 'top' },
-      tooltip: {
-        callbacks: {
-          label: ctx => ' 收盘价: HK$' + ctx.parsed.y.toFixed(2)
+    // ============ Indicator Calculations ============
+    function calcRSI(data, period) {
+        const rsi = new Array(data.length).fill(null);
+        if (data.length < period + 1) return rsi;
+        let avgGain = 0, avgLoss = 0;
+        for (let i = 1; i <= period; i++) {
+            const change = data[i].close - data[i-1].close;
+            if (change > 0) avgGain += change; else avgLoss += Math.abs(change);
         }
-      }
-    },
-    scales: {
-      x: { ticks: { maxTicksLimit: 12 }, grid: { display: false } },
-      y: { ticks: { callback: v => 'HK$' + v } }
+        avgGain /= period;
+        avgLoss /= period;
+        rsi[period] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+        for (let i = period + 1; i < data.length; i++) {
+            const change = data[i].close - data[i-1].close;
+            const gain = change > 0 ? change : 0;
+            const loss = change < 0 ? Math.abs(change) : 0;
+            avgGain = (avgGain * (period - 1) + gain) / period;
+            avgLoss = (avgLoss * (period - 1) + loss) / period;
+            rsi[i] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+        }
+        return rsi;
     }
-  }
-});
 
-// ====== 数据表格（显示最近 50 条）======
-const tbody = document.getElementById('tableBody');
-stockData.forEach(d => {
-  const tr = document.createElement('tr');
-  const cls = d.pct_chg >= 0 ? 'up' : 'down';
-  const sign = d.pct_chg >= 0 ? '+' : '';
-  tr.innerHTML = `
-    <td>${fmtDate(d.trade_date)}</td>
-    <td class="${cls}">${d.open.toFixed(2)}</td>
-    <td class="${cls}">${d.high.toFixed(2)}</td>
-    <td class="${cls}">${d.low.toFixed(2)}</td>
-    <td class="${cls}" style="font-weight:700">${d.close.toFixed(2)}</td>
-    <td class="${cls}">${sign}${d.pct_chg.toFixed(2)}%</td>
-    <td>${d.vol.toLocaleString(undefined, {maximumFractionDigits:0})}</td>`;
-  tbody.appendChild(tr);
-});
-</script>
+    function calcEMA(values, period) {
+        const ema = new Array(values.length).fill(null);
+        if (values.length < period) return ema;
+        const k = 2 / (period + 1);
+        let sum = 0;
+        for (let i = 0; i < period; i++) sum += values[i];
+        ema[period - 1] = sum / period;
+        for (let i = period; i < values.length; i++) {
+            ema[i] = values[i] * k + ema[i-1] * (1 - k);
+        }
+        return ema;
+    }
+
+    function calcMACD(data, fast, slow, signal) {
+        const closes = data.map(d => d.close);
+        const emaFast = calcEMA(closes, fast);
+        const emaSlow = calcEMA(closes, slow);
+        const dif = closes.map((_, i) => {
+            if (emaFast[i] === null || emaSlow[i] === null) return null;
+            return emaFast[i] - emaSlow[i];
+        });
+        const validDif = dif.filter(v => v !== null);
+        const deaValid = calcEMA(validDif, signal);
+        const dea = new Array(closes.length).fill(null);
+        const startIdx = dif.findIndex(v => v !== null);
+        for (let i = 0; i < deaValid.length; i++) {
+            if (deaValid[i] !== null) dea[startIdx + i] = deaValid[i];
+        }
+        const hist = closes.map((_, i) => {
+            if (dif[i] === null || dea[i] === null) return null;
+            return 2 * (dif[i] - dea[i]);
+        });
+        return { dif, dea, hist };
+    }
+
+    function calcBoll(data, period, stdDev) {
+        const ma = new Array(data.length).fill(null);
+        const upper = new Array(data.length).fill(null);
+        const lower = new Array(data.length).fill(null);
+        for (let i = period - 1; i < data.length; i++) {
+            let sum = 0;
+            for (let j = i - period + 1; j <= i; j++) sum += data[j].close;
+            const mean = sum / period;
+            ma[i] = mean;
+            let variance = 0;
+            for (let j = i - period + 1; j <= i; j++) variance += Math.pow(data[j].close - mean, 2);
+            const sd = Math.sqrt(variance / period);
+            upper[i] = mean + stdDev * sd;
+            lower[i] = mean - stdDev * sd;
+        }
+        return { ma, upper, lower };
+    }
+
+    function calcATR(data, period) {
+        const tr = new Array(data.length).fill(null);
+        for (let i = 1; i < data.length; i++) {
+            const h = data[i].high, l = data[i].low, pc = data[i-1].close;
+            tr[i] = Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+        }
+        const atr = new Array(data.length).fill(null);
+        if (data.length < period + 1) return { tr, atr };
+        let sum = 0;
+        for (let i = 1; i <= period; i++) sum += tr[i];
+        atr[period] = sum / period;
+        for (let i = period + 1; i < data.length; i++) {
+            atr[i] = (atr[i-1] * (period - 1) + tr[i]) / period;
+        }
+        return { tr, atr };
+    }
+
+    // ============ Chart Helpers ============
+    function formatDate(dateStr) {
+        const y = dateStr.substring(0, 4);
+        const m = dateStr.substring(4, 6);
+        const d = dateStr.substring(6, 8);
+        return `${y}-${m}-${d}`;
+    }
+
+    function getSlice(data) {
+        const range = parseInt(document.getElementById('rangeSelect').value);
+        if (range === 0) return data;
+        return data.slice(-range);
+    }
+
+    function destroyChart(name) {
+        if (charts[name]) { charts[name].destroy(); charts[name] = null; }
+    }
+
+    function commonChartOptions(extra = {}) {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: extra.legend !== false, position: 'top', labels: { font: { size: 11 } } },
+                tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', titleFont: { size: 12 }, bodyFont: { size: 12 } }
+            },
+            scales: {
+                x: {
+                    type: 'category',
+                    ticks: { maxTicksLimit: 10, font: { size: 10 }, autoSkip: true },
+                    grid: { display: false }
+                },
+                y: { ticks: { font: { size: 10 } }, grid: { color: '#f0f0f0' } }
+            },
+            ...extra
+        };
+    }
+
+    // ============ Chart Renderers ============
+    function renderPriceChart(data) {
+        destroyChart('price');
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const chartType = document.getElementById('chartType').value;
+        const labels = data.map(d => formatDate(d.date));
+        const colors = data.map((d, i) => {
+            if (i === 0) return RED;
+            return d.close >= data[i-1].close ? RED : GREEN;
+        });
+
+        if (chartType === 'candle') {
+            const barData = data.map(d => ({
+                label: formatDate(d.date),
+                data: [d.low, d.open, d.close, d.high]
+            }));
+            // Use bar chart to simulate candlestick
+            charts.price = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: '涨幅',
+                            data: data.map((d, i) => {
+                                if (i === 0) return d.close - d.open;
+                                return d.close >= d.open ? d.close - d.open : null;
+                            }),
+                            backgroundColor: RED + '80',
+                            borderColor: RED,
+                            borderWidth: 1,
+                            stack: 'range'
+                        },
+                        {
+                            label: '跌幅',
+                            data: data.map((d, i) => {
+                                if (i === 0) return null;
+                                return d.close < d.open ? d.open - d.close : null;
+                            }),
+                            backgroundColor: GREEN + '80',
+                            borderColor: GREEN,
+                            borderWidth: 1,
+                            stack: 'range'
+                        }
+                    ]
+                },
+                options: commonChartOptions({
+                    plugins: { legend: { display: false }, tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const d = data[ctx.dataIndex];
+                                return [`开: ${d.open}`, `高: ${d.high}`, `低: ${d.low}`, `收: ${d.close}`];
+                            }
+                        }
+                    }}
+                })
+            });
+        } else {
+            charts.price = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: '收盘价',
+                        data: data.map(d => d.close),
+                        borderColor: COLORS.price,
+                        backgroundColor: 'rgba(24,144,255,0.08)',
+                        borderWidth: 1.5,
+                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        tension: 0.1
+                    }]
+                },
+                options: commonChartOptions({
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: (ctx) => {
+                                    const d = data[ctx.dataIndex];
+                                    return [`开: ${d.open}  高: ${d.high}`, `低: ${d.low}  量: ${(d.vol/10000).toFixed(1)}万`];
+                                }
+                            }
+                        }
+                    }
+                })
+            });
+        }
+    }
+
+    function renderRSIChart(data) {
+        destroyChart('rsi');
+        const ctx = document.getElementById('rsiChart').getContext('2d');
+        const period = parseInt(document.getElementById('rsiPeriod').value);
+        const overbought = parseFloat(document.getElementById('rsiOverbought').value);
+        const oversold = parseFloat(document.getElementById('rsiOversold').value);
+        const rsi = calcRSI(data, period);
+        const labels = data.map(d => formatDate(d.date));
+
+        charts.rsi = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: `RSI(${period})`,
+                        data: rsi,
+                        borderColor: COLORS.rsiLine,
+                        backgroundColor: 'rgba(146,84,222,0.08)',
+                        borderWidth: 1.5,
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        tension: 0.1
+                    },
+                    {
+                        label: `超买线(${overbought})`,
+                        data: data.map(() => overbought),
+                        borderColor: RED + '60',
+                        borderWidth: 1,
+                        borderDash: [5, 3],
+                        fill: false,
+                        pointRadius: 0
+                    },
+                    {
+                        label: `超卖线(${oversold})`,
+                        data: data.map(() => oversold),
+                        borderColor: GREEN + '60',
+                        borderWidth: 1,
+                        borderDash: [5, 3],
+                        fill: false,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: commonChartOptions({
+                scales: { y: { min: 0, max: 100, ticks: { font: { size: 10 } }, grid: { color: '#f0f0f0' } } }
+            })
+        });
+    }
+
+    function renderMACDChart(data) {
+        destroyChart('macd');
+        const ctx = document.getElementById('macdChart').getContext('2d');
+        const fast = parseInt(document.getElementById('macdFast').value);
+        const slow = parseInt(document.getElementById('macdSlow').value);
+        const signal = parseInt(document.getElementById('macdSignal').value);
+        const { dif, dea, hist } = calcMACD(data, fast, slow, signal);
+        const labels = data.map(d => formatDate(d.date));
+
+        charts.macd = new Chart(ctx, {
+            data: {
+                labels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'MACD柱',
+                        data: hist.map(v => v),
+                        backgroundColor: hist.map(v => v === null ? 'transparent' : (v >= 0 ? RED + '80' : GREEN + '80')),
+                        borderColor: hist.map(v => v === null ? 'transparent' : (v >= 0 ? RED : GREEN)),
+                        borderWidth: 1
+                    },
+                    {
+                        type: 'line',
+                        label: 'DIF',
+                        data: dif,
+                        borderColor: COLORS.dif,
+                        borderWidth: 1.5,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.1
+                    },
+                    {
+                        type: 'line',
+                        label: 'DEA',
+                        data: dea,
+                        borderColor: COLORS.dea,
+                        borderWidth: 1.5,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: commonChartOptions()
+        });
+    }
+
+    function renderBollChart(data) {
+        destroyChart('boll');
+        const ctx = document.getElementById('bollChart').getContext('2d');
+        const period = parseInt(document.getElementById('bollPeriod').value);
+        const stdDev = parseFloat(document.getElementById('bollStd').value);
+        const { ma, upper, lower } = calcBoll(data, period, stdDev);
+        const labels = data.map(d => formatDate(d.date));
+
+        charts.boll = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: `上轨(${period},${stdDev}std)`,
+                        data: upper,
+                        borderColor: COLORS.bollUpper,
+                        borderWidth: 1,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.1
+                    },
+                    {
+                        label: '中轨(MA)',
+                        data: ma,
+                        borderColor: COLORS.bollMid,
+                        borderWidth: 1.5,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.1
+                    },
+                    {
+                        label: '下轨',
+                        data: lower,
+                        borderColor: COLORS.bollLower,
+                        borderWidth: 1,
+                        fill: '-1',
+                        backgroundColor: 'rgba(250,140,22,0.05)',
+                        pointRadius: 0,
+                        tension: 0.1
+                    },
+                    {
+                        label: '收盘价',
+                        data: data.map(d => d.close),
+                        borderColor: '#333',
+                        borderWidth: 1,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: commonChartOptions()
+        });
+    }
+
+    function renderATRChart(data) {
+        destroyChart('atr');
+        const ctx = document.getElementById('atrChart').getContext('2d');
+        const period = parseInt(document.getElementById('atrPeriod').value);
+        const { tr, atr } = calcATR(data, period);
+        const labels = data.map(d => formatDate(d.date));
+
+        charts.atr = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: `ATR(${period})`,
+                        data: atr,
+                        borderColor: COLORS.atrLine,
+                        backgroundColor: COLORS.atrFill,
+                        borderWidth: 1.5,
+                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 3,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'TR(真实波幅)',
+                        data: tr,
+                        borderColor: '#bbb',
+                        borderWidth: 0.8,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0
+                    }
+                ]
+            },
+            options: commonChartOptions()
+        });
+    }
+
+    // ============ Info Cards ============
+    function renderInfoCards(data) {
+        const last = data[data.length - 1];
+        const prev = data[data.length - 2] || last;
+        const change = last.close - prev.close;
+        const pctChg = prev.close ? (change / prev.close * 100) : 0;
+        const high = Math.max(...data.slice(-20).map(d => d.high));
+        const low = Math.min(...data.slice(-20).map(d => d.low));
+        const avgVol = data.slice(-20).reduce((s, d) => s + d.vol, 0) / Math.min(20, data.length);
+        const isUp = change >= 0;
+
+        document.getElementById('infoCards').innerHTML = `
+            <div class="info-card">
+                <div class="label">最新收盘价</div>
+                <div class="value">${last.close.toFixed(2)}</div>
+                <div class="change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${change.toFixed(2)} (${pctChg.toFixed(2)}%)</div>
+            </div>
+            <div class="info-card">
+                <div class="label">20日最高</div>
+                <div class="value" style="color:${RED}">${high.toFixed(2)}</div>
+            </div>
+            <div class="info-card">
+                <div class="label">20日最低</div>
+                <div class="value" style="color:${GREEN}">${low.toFixed(2)}</div>
+            </div>
+            <div class="info-card">
+                <div class="label">20日均量</div>
+                <div class="value">${(avgVol / 10000).toFixed(0)}<span style="font-size:14px;color:#999"> 万</span></div>
+            </div>
+            <div class="info-card">
+                <div class="label">数据区间</div>
+                <div class="value" style="font-size:14px">${formatDate(data[0].date).substring(0,7)} ~ ${formatDate(last.date).substring(0,7)}</div>
+                <div class="change" style="color:#999">共 ${data.length} 个交易日</div>
+            </div>
+        `;
+    }
+
+    // ============ Main Render ============
+    function renderAll() {
+        if (!currentStock) return;
+        const allData = currentStock.data;
+        const data = getSlice(allData);
+        renderInfoCards(allData);
+        renderPriceChart(data);
+        renderRSIChart(data);
+        renderMACDChart(data);
+        renderBollChart(data);
+        renderATRChart(data);
+    }
+
+    // ============ Event Listeners ============
+    function initStockSelector() {
+        const select = document.getElementById('stockSelect');
+        const codes = Object.keys(STOCK_DATA);
+        codes.forEach(code => {
+            const stock = STOCK_DATA[code];
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.textContent = `${stock.name_cn} (${code})`;
+            select.appendChild(opt);
+        });
+        if (codes.length > 0) {
+            currentStock = STOCK_DATA[codes[0]];
+            select.value = codes[0];
+        }
+        select.addEventListener('change', (e) => {
+            currentStock = STOCK_DATA[e.target.value];
+            renderAll();
+        });
+    }
+
+    function initControls() {
+        document.getElementById('rangeSelect').addEventListener('change', renderAll);
+        document.getElementById('chartType').addEventListener('change', renderAll);
+        // Debounce parameter inputs
+        let timer = null;
+        const inputs = ['rsiPeriod','rsiOverbought','rsiOversold','macdFast','macdSlow','macdSignal','bollPeriod','bollStd','atrPeriod'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                clearTimeout(timer);
+                timer = setTimeout(renderAll, 300);
+            });
+        });
+    }
+
+    // ============ Init ============
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof STOCK_DATA === 'undefined') {
+            document.querySelector('.container').innerHTML = '<div class="loading"><div class="spinner"></div>正在加载数据...</div>';
+            return;
+        }
+        initStockSelector();
+        initControls();
+        renderAll();
+    });
+    </script>
 </body>
 </html>
